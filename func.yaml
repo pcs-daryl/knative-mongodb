@@ -1,0 +1,12 @@
+specVersion: 0.36.0
+name: knative-mongodb
+runtime: python
+registry: docker.io/darylang96
+namespace: default
+created: 2024-11-22T16:18:52.3319542+08:00
+invoke: cloudevent
+build:
+  builder: pack
+deploy:
+  namespace: default
+  image: index.docker.io/darylang96/knative-mongodb@sha256:f70d55a77a3f7826ff58589a9d7734cbc75de7becb667380c1d302c245afd475
