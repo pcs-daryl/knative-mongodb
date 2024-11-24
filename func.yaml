@@ -9,4 +9,4 @@ build:
   builder: pack
 deploy:
   namespace: default
-  image: index.docker.io/darylang96/knative-mongodb@sha256:f70d55a77a3f7826ff58589a9d7734cbc75de7becb667380c1d302c245afd475
+  image: index.docker.io/darylang96/knative-mongodb@sha256:0c5704c575ddd7f40cf29e26ac4cf5ab1990c9d11a970f93f33e1b147549aa20

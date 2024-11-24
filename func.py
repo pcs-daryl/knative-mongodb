@@ -10,33 +10,53 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-def connect(mongo_uri="mongodb://my-user:admin@example-mongodb-svc:27017/hello?authMechanism=SCRAM-SHA-256"):
+def connect_and_insert(mongo_uri="mongodb://my-user:admin@example-mongodb-svc:27017/knative?authMechanism=SCRAM-SHA-256", 
+                       collection_name=None, 
+                       payload=None):
     """
-    Connects to the MongoDB server and retrieves all collections from the 'test' database.
-    
+    Connects to the MongoDB server and inserts data into a specified collection.
+
     Args:
-        mongo_uri (str): The MongoDB URI with credentials. Defaults to 
-                         'mongodb://username:password@localhost:27017/'.
+        mongo_uri (str): The MongoDB URI with credentials. Defaults to a sample URI.
+        collection_name (str): The name of the collection to insert data into.
+        payload (dict or list): The data to insert. Can be a dictionary for a single document 
+                                or a list of dictionaries for multiple documents.
 
     Returns:
-        list: A list of collection names in the 'test' database.
+        str: Success message or error message.
     """
+    if not collection_name:
+        return "Collection name must be provided."
+    
+    if not payload:
+        return "Payload must be provided."
+
     try:
         # Create a MongoDB client with credentials in the URI
         client = MongoClient(mongo_uri)
         
-        # Access the 'test' database
-        db = client['hello']
+        # Access the 'hello' database
+        db = client['knative']
         
-        # Get the list of collections
-        collections = db.list_collection_names()
-        return collections
+        # Access the specified collection
+        collection = db[collection_name]
+        logger.info(payload)
+
+        # Insert data
+        if isinstance(payload, list):
+            result = collection.insert_many(payload)
+            return f"Inserted {len(result.inserted_ids)} documents into '{collection_name}' collection."
+        elif isinstance(payload, dict):
+            result = collection.insert_one(payload)
+            return f"Inserted document with ID: {result.inserted_id} into '{collection_name}' collection."
+        else:
+            return "Payload must be a dictionary or a list of dictionaries."
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
+        return f"An error occurred: {e}"
     finally:
         # Close the MongoDB connection
         client.close()
+
 @event
 def main(context: Context):
     """
@@ -49,9 +69,8 @@ def main(context: Context):
 
     # print(connect())
     data = context.cloud_event.data
-    data["recevied"] = "true"
-    data["stuff"] = connect()
     logger.info(data)
+    result = connect_and_insert(collection_name=data["collection_name"], payload=data)
     # The return value here will be applied as the data attribute
     # of a CloudEvent returned to the function invoker
-    return data
+    return {"result":result}

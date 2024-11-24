@@ -4,4 +4,3 @@
 # .func in source control, comment the following line (prefix it with '# ').
 /.func
 venv/
-test.ps1
