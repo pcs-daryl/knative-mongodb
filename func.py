@@ -2,6 +2,7 @@ from parliament import Context, event
 from pymongo import MongoClient
 import logging
 import sys
+import copy
 
 logger = logging.getLogger()
 handler = logging.StreamHandler(sys.stdout)  # Write to stdout
@@ -66,11 +67,12 @@ def main(context: Context):
     """
 
     # Add your business logic here
-
-    # print(connect())
     data = context.cloud_event.data
-    logger.info(data)
-    result = connect_and_insert(collection_name=data["collection_name"], payload=data)
+    collection_name = data["collection_name"]
+    data.pop('collection_name', None)
+    data_copy = copy.deepcopy(data)
+    
+    result = connect_and_insert(collection_name=collection_name, payload=data)
     # The return value here will be applied as the data attribute
     # of a CloudEvent returned to the function invoker
-    return {"result":result}
+    return {"result":result, "data": data_copy}
